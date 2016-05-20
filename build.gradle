@@ -1,0 +1,52 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'idea'
+
+repositories {
+  maven { url 'http://192.168.11.222:8080/repository/internal/' }
+}
+
+sourceSets {
+  main {
+    java.srcDirs = ["src", "src_resources"]
+    resources.srcDirs = ["src", "src_resources"]
+    output.resourcesDir = "build/classes/main"
+  }
+  test {
+    java.srcDirs = ["test_src", "test_resources"]
+    resources.srcDirs = ["test_src", "test_resources"]
+    output.resourcesDir = "build/classes/test"
+  }
+}
+
+
+dependencies {
+  compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.2.2'
+  compile "kz.greetgo:greetgo.util:0.0.26"
+}
+
+task selectIds(type: JavaExec) {
+  dependsOn classes
+
+  main = 'mongo.SelectSomeIds'
+  args = []
+  classpath { [sourceSets.main.runtimeClasspath] }
+}
+
+task test1(type: JavaExec) {
+  dependsOn classes
+
+  main = 'mongo.StartUpsertManyOperations'
+  args = []
+  classpath { [sourceSets.main.runtimeClasspath] }
+}
+
+task loadTestData(type: JavaExec) {
+  dependsOn classes
+
+  main = 'mongo.TestLoadMongoDbWithBulk'
+  args = []
+  classpath { [sourceSets.main.runtimeClasspath] }
+}
+

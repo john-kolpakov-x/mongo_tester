@@ -1,6 +1,7 @@
 package rocksdb;
 
 import kz.greetgo.util.RND;
+import org.rocksdb.ColumnFamilyOptionsInterface;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 
@@ -10,13 +11,13 @@ public class LoadDataN {
   //final static File dataDir = new File("/home/pompei/tmp/load_test_rocks_db");
   final static  File dataDir = new File("/home/pompei/discs/data2/load_test_rocks_db");
 
-  public static final int THREADS_COUNT = 1;
+  public static final int THREADS_COUNT = 10;
   //public static final int BULK_SIZE = 10;
   public static final int BULK_SIZE = 10;
 
   final static String PRE_KEYS[] = {
       "4678912731942369874568934281764195786345761934856717653736524-",
-      "3289749057789456328941695764325693174693281675943259867111224-",
+      "1238974905778945632894169571111569317469328167594325986711122-",
       "4325614875604687596428765348167594150102809850185015856472834-",
   };
   static final int USE_KEYS = 1;
@@ -31,6 +32,10 @@ public class LoadDataN {
     options = new Options().setCreateIfMissing(true);
     options.allowMmapReads();
     options.allowMmapWrites();
+    options.tableFactoryName();
+
+    ColumnFamilyOptionsInterface x;
+    
     db = RocksDB.open(options, dataDir.getPath());
 
     new LoadDataN().execute();

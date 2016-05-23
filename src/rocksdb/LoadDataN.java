@@ -1,38 +1,44 @@
-package mongo;
+package rocksdb;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.UpdateOneModel;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
 import kz.greetgo.util.RND;
-import org.bson.Document;
+import org.rocksdb.Options;
+import org.rocksdb.RocksDB;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-public class TestLoadMongoDbWithBulk {
+public class LoadDataN {
+  //final static File dataDir = new File("/home/pompei/tmp/load_test_rocks_db");
+  final static  File dataDir = new File("/home/pompei/discs/data2/load_test_rocks_db");
 
   public static final int THREADS_COUNT = 1;
   //public static final int BULK_SIZE = 10;
   public static final int BULK_SIZE = 10;
 
-  public static final UpdateOptions UPSERT = new UpdateOptions().upsert(true);
-
-  public static void main(String[] args) throws Exception {
-    new TestLoadMongoDbWithBulk().execute();
-    System.out.println("All Threads Complete");
-  }
-
   final static String PRE_KEYS[] = {
       "4678912731942369874568934281764195786345761934856717653736524-",
-      "3289749057789456328941695764325693174693281675943259864223888-",
+      "3289749057789456328941695764325693174693281675943259867111224-",
       "4325614875604687596428765348167594150102809850185015856472834-",
   };
-  static final int USE_KEYS = 2;
+  static final int USE_KEYS = 1;
+
+
+//  public static final UpdateOptions UPSERT = new UpdateOptions().upsert(true);
+
+  static RocksDB db;
+  static Options options;
+
+  public static void main(String[] args) throws Exception {
+    options = new Options().setCreateIfMissing(true);
+    options.allowMmapReads();
+    options.allowMmapWrites();
+    db = RocksDB.open(options, dataDir.getPath());
+
+    new LoadDataN().execute();
+    System.out.println("All Threads Complete");
+
+    db.close();
+    options.dispose();
+  }
 
   class InsertThread extends Thread {
 
@@ -42,41 +48,24 @@ public class TestLoadMongoDbWithBulk {
 
     @Override
     public void run() {
-      try (MongoClient mongoClient = ConnectManager.get()) {
-
-        MongoDatabase loadTestDb = mongoClient.getDatabase("LoadTest");
-
-        MongoCollection<Document> tst1 = loadTestDb.getCollection("tst1");
+      try {
 
         int currentSize = 0;
         long started = System.currentTimeMillis();
         long startedPortion = started;
 
-
         int t = 0;
+
         while (working) {
-          List<WriteModel<Document>> requests = new ArrayList<>();
+          //List<WriteModel<Document>> requests = new ArrayList<>();
 
           for (int b = 0; b < BULK_SIZE && working; b++) {
 
             String id = PRE_KEYS[t % USE_KEYS] + t;
             t++;
 
-            BasicDBObject filter = new BasicDBObject();
-            filter.put("id", id);
-
-            BasicDBObject data = new BasicDBObject();
-            for (int i = 1; i <= 1; i++) {
-              data.put("name" + i, RND.str(50));
-            }
-
-            BasicDBObject setter = new BasicDBObject();
-            setter.put("$set", data);
-
-            //tst1.updateOne(filter, setter, UPSERT);
-
-            UpdateOneModel<Document> up = new UpdateOneModel<>(filter, setter, UPSERT);
-            requests.add(up);
+            String value = RND.str(50);
+            db.put(id.getBytes("UTF-8"), value.getBytes("UTF-8"));
 
             currentSize++;
             size++;
@@ -95,7 +84,7 @@ public class TestLoadMongoDbWithBulk {
             }
           }
 
-          tst1.bulkWrite(requests);
+          //tst1.bulkWrite(requests);
 
         }
 
@@ -106,6 +95,9 @@ public class TestLoadMongoDbWithBulk {
             + ((double) totalPeriod / 1000.0) + " s; tps = " + tos(((double) size / (double) totalPeriod) * 1000.0));
 
         this.totalPeriod = totalPeriod;
+
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
   }
@@ -115,6 +107,9 @@ public class TestLoadMongoDbWithBulk {
   }
 
   private void execute() throws Exception {
+
+    dataDir.mkdirs();
+
     final InsertThread tt[] = new InsertThread[THREADS_COUNT];
     for (int i = 0; i < THREADS_COUNT; i++) {
       tt[i] = new InsertThread();

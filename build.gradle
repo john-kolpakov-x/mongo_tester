@@ -24,6 +24,7 @@ sourceSets {
 dependencies {
   compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.2.2'
   compile "kz.greetgo:greetgo.util:0.0.26"
+  compile group: 'org.rocksdb', name: 'rocksdbjni', version: '4.5.1'
 }
 
 task selectIds(type: JavaExec) {
@@ -46,6 +47,15 @@ task loadTestData(type: JavaExec) {
   dependsOn classes
 
   main = 'mongo.TestLoadMongoDbWithBulk'
+  args = []
+  classpath { [sourceSets.main.runtimeClasspath] }
+  maxHeapSize = "10G"
+}
+
+task rocks(type: JavaExec) {
+  dependsOn classes
+
+  main = 'rocksdb.LoadData1'
   args = []
   classpath { [sourceSets.main.runtimeClasspath] }
 }

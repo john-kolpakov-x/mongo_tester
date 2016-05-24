@@ -25,6 +25,7 @@ dependencies {
   compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.2.2'
   compile "kz.greetgo:greetgo.util:0.0.26"
   compile group: 'org.rocksdb', name: 'rocksdbjni', version: '4.5.1'
+  compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.39'
 }
 
 task selectIds(type: JavaExec) {

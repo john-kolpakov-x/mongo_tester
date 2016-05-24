@@ -16,21 +16,20 @@ import java.util.List;
 
 public class TestLoadMongoDbWithBulk {
 
-  public static final int THREADS_COUNT = 1;
-  //public static final int BULK_SIZE = 10;
-  public static final int BULK_SIZE = 10;
+  public static final int THREADS_COUNT = 10;
+  public static final int BULK_SIZE = 5;
 
   public static final UpdateOptions UPSERT = new UpdateOptions().upsert(true);
 
   public static void main(String[] args) throws Exception {
+    PRE_KEYS[1] = RND.intStr(61) + "-";
     new TestLoadMongoDbWithBulk().execute();
-    System.out.println("All Threads Complete");
+    System.out.println("All threads Complete");
   }
 
   final static String PRE_KEYS[] = {
       "4678912731942369874568934281764195786345761934856717653736524-",
-      "3289749057789456328941695764325693174693281675943259864223888-",
-      "4325614875604687596428765348167594150102809850185015856472834-",
+      "1119749057789411127252695764325693174693281675432338642231246-",
   };
   static final int USE_KEYS = 2;
 
@@ -96,7 +95,6 @@ public class TestLoadMongoDbWithBulk {
           }
 
           tst1.bulkWrite(requests);
-
         }
 
         long totalPeriod = System.currentTimeMillis() - started;
